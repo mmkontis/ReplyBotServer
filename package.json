@@ -1,0 +1,11 @@
+{
+  "name": "replybotserver",
+  "version": "1.0.0",
+  "description": "Backend server for GPT-4 Twitter reply generator",
+  "dependencies": {
+    "openai": "^3.2.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Mic Sensitivity Animation</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            width: 100%;
+            background-color: #000;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .mic-bar {
+            width: 40px;
+            height: 20%;
+            background-color: #fff;
+            margin: 0 5px;
+            border-radius: 1000px;
+            transition: height 0.1s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+        <div class="mic-bar"></div>
+    </div>
+    <script>
+        const bars = document.querySelectorAll('.mic-bar');
+        let audioContext, analyser, dataArray;
+
+        async function setupMicrophone() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                analyser.fftSize = 32;
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                requestAnimationFrame(updateBars);
+            } catch (err) {
+                console.error('Error accessing microphone:', err);
+                alert('Unable to access the microphone. Please ensure you have granted the necessary permissions.');
+            }
+        }
+
+        function updateBars() {
+            analyser.getByteFrequencyData(dataArray);
+            const centerIndex = Math.floor(dataArray.length / 2);
+            for (let i = 0; i < bars.length; i++) {
+                const distanceFromCenter = Math.abs(i - 2);
+                const sensitivityFactor = 1 - (distanceFromCenter * 0.2);
+                const value = (dataArray[centerIndex + i - 2] || 0) / 255;
+                const adjustedValue = Math.pow(value * sensitivityFactor, 1.5);
+                bars[i].style.height = `${20 + adjustedValue * 60}%`;
+            }
+            requestAnimationFrame(updateBars);
+        }
+
+        document.addEventListener('click', setupMicrophone, { once: true });
+    </script>
+</body>
+</html>
