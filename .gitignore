@@ -1,3 +1,3 @@
 .vercel
-Framer
-node_modules
+/node_modules
+/Framer
